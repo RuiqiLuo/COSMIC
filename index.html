@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>COSMIC Explorer — Solvent Property Database</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --accent: #3b82f6;
+            --accent-light: #eff6ff;
+            --green: #10b981;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --purple: #8b5cf6;
+            --sans: 'DM Sans', system-ui, sans-serif;
+            --mono: 'DM Mono', monospace;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+        }
+
+        /* ── Header ── */
+        .app-header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            height: 56px;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 17px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-header h1 .logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .header-stats span {
+            background: var(--accent-light);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        /* ── List Page ── */
+        #page-list {
+            display: block;
+        }
+
+        .search-hero {
+            padding: 40px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-hero h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .search-hero p {
+            font-size: 13px;
+            color: var(--muted);
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .search-row {
+            display: flex;
+            width: 100%;
+            max-width: 720px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+
+        .search-row:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+        }
+
+        .search-label {
+            padding: 0 14px;
+            background: #f9fafb;
+            border-right: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .search-row input {
+            flex: 1;
+            padding: 12px 14px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            font-family: var(--mono);
+            background: transparent;
+        }
+
+        .btn-search {
+            padding: 0 24px;
+            background: var(--accent);
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .btn-search:hover {
+            background: #2563eb;
+        }
+
+        .sort-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 13px;
+            color: var(--muted);
+            max-width: 720px;
+            width: 100%;
+        }
+
+        .sort-bar select {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            background: var(--surface);
+        }
+
+        .list-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 24px 40px;
+        }
+
+        .mol-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mol-table th {
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #374151;
+            background: #f9fafb;
+            border-bottom: 2px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .mol-table th:hover {
+            color: var(--accent);
+        }
+
+        .mol-table th .sort-arrow {
+            margin-left: 4px;
+            opacity: .4;
+        }
+
+        .mol-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .mol-table tr {
+            cursor: pointer;
+            transition: background .1s;
+        }
+
+        .mol-table tbody tr:hover td {
+            background: var(--accent-light);
+        }
+
+        .mol-table td.val {
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .smiles-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s;
+        }
+
+        .page-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .page-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: .3;
+            cursor: default;
+        }
+
+        .page-info {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 12px;
+        }
+
+        /* ── Detail Page ── */
+        #page-detail {
+            display: none;
+        }
+
+        .detail-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr 320px;
+            min-height: calc(100vh - 56px);
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1100px) {
+            .detail-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-nav,
+            .detail-right {
+                display: none;
+            }
+        }
+
+        .detail-nav {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px 0;
+            position: sticky;
+            top: 56px;
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+        }
+
+        .mol-title-block {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .formula-big {
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--mono);
+            margin-bottom: 6px;
+            color: #000;
+            word-break: break-all;
+        }
+
+        .meta-lines {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .meta-lines code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+
+        .toc {
+            padding: 16px 0;
+        }
+
+        .toc-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+
+        .toc-link {
+            display: block;
+            padding: 7px 20px;
+            font-size: 13px;
+            color: var(--accent);
+            text-decoration: none;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all .12s;
+        }
+
+        .toc-link:hover {
+            background: var(--accent-light);
+        }
+
+        .toc-link.active {
+            background: var(--accent);
+            color: white;
+            border-radius: 0;
+            border-left-color: var(--accent);
+        }
+
+        .toc-link.sub {
+            padding-left: 36px;
+            font-size: 12.5px;
+        }
+
+        .toc-link.sub.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .detail-center {
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .viewer-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #canvas-wrap {
+            width: 100%;
+            height: 480px;
+            cursor: grab;
+            background: #ffffff;
+        }
+
+        .viewer-card:fullscreen {
+            background: #ffffff;
+            border: none;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-card:fullscreen #canvas-wrap {
+            flex: 1;
+            height: 100% !important;
+        }
+
+        .viewer-card:fullscreen .mol-id-footer {
+            flex-shrink: 0;
+        }
+
+        .viewer-card:fullscreen .atom-chips {
+            bottom: 60px;
+        }
+
+        .viewer-card:fullscreen .viewer-controls {
+            top: 20px;
+            right: 20px;
+        }
+
+        .viewer-controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ctrl-btn {
+            width: 34px;
+            height: 34px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #4b5563;
+            font-size: 16px;
+            transition: all .15s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .atom-chips {
+            position: absolute;
+            bottom: 52px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .atom-chip {
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+            gap: 4px;
+        }
+
+        .mol-id-footer {
+            padding: 10px 16px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+            background: #f9fafb;
+        }
+
+        .viewer-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .92);
+            z-index: 10;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .viewer-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.visible {
+            display: block;
+        }
+
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .section-card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-card h2 .badge {
+            font-size: 10px;
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .section-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .prop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .prop-card {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 16px;
+        }
+
+        .prop-card .prop-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 6px;
+        }
+
+        .prop-card .prop-value {
+            font-size: 18px;
+            font-weight: 600;
+            font-family: var(--mono);
+            color: #111827;
+        }
+
+        .prop-card .prop-unit {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        .btable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .btable th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid var(--border);
+            background: #f9fafb;
+            text-transform: uppercase;
+        }
+
+        .btable td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .btable td.val {
+            font-family: var(--mono);
+            color: #111827;
+        }
+
+        .btable tr:last-child td {
+            border-bottom: none;
+        }
+
+        .detail-right {
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            padding: 24px;
+            overflow-y: auto;
+            position: sticky;
+            top: 56px;
+            height: calc(100vh - 56px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .right-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .prop-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+
+        .prop-row .label {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .prop-row .value {
+            font-family: var(--mono);
+            color: #111827;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag-blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .tag-green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .tag-amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tag-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-data {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px dashed #d1d5db;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 800px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════ LIST PAGE ═══════════════════ -->
+    <div id="page-list">
+        <header class="app-header">
+            <h1><img class="logo" src="image.png" alt="COSMIC"> COSMIC Explorer</h1>
+            <div class="header-stats">
+                <span id="stat-solvents">— solvents</span>
+                <span id="stat-dft">— DFT records</span>
+                <span id="stat-co2">— CO₂ solubility</span>
+            </div>
+        </header>
+
+        <div class="search-hero">
+            <h2>Solvent Property Database</h2>
+            <p>Explore 3000+ solvents with physical, thermodynamic, electronic, and transport properties from COSMO-RS,
+                DFT, and MD simulations.</p>
+            <div class="search-row">
+                <span class="search-label">Search</span>
+                <input type="text" id="search-input"
+                    placeholder="Solvent ID, SMILES, or formula… e.g. zinc_50103500 or C5H8O" />
+                <button class="btn-search" id="btn-search">Search</button>
+            </div>
+            <div class="sort-bar">
+                <span>Sort by:</span>
+                <select id="sort-select">
+                    <option value="id">Solvent ID</option>
+                    <option value="bp">Boiling Point ↑</option>
+                    <option value="bp-desc">Boiling Point ↓</option>
+                    <option value="visc">Viscosity ↑</option>
+                    <option value="visc-desc">Viscosity ↓</option>
+                    <option value="density">Density ↑</option>
+                    <option value="density-desc">Density ↓</option>
+                    <option value="dielec-desc">Dielectric Const ↓</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="list-container">
+            <table class="mol-table">
+                <thead>
+                    <tr>
+                        <th>Solvent ID</th>
+                        <th>SMILES</th>
+                        <th>Viscosity (Pa·s)</th>
+                        <th>Density (kg/L)</th>
+                        <th>Boiling Pt (K)</th>
+                        <th>Dielectric</th>
+                        <th>vdW Vol (Å³)</th>
+                    </tr>
+                </thead>
+                <tbody id="mol-tbody"></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ DETAIL PAGE ═══════════════════ -->
+    <div id="page-detail">
+        <header class="app-header">
+            <div class="breadcrumb">
+                <a id="back-to-list"><img class="logo" src="image.png" alt="C"
+                        style="width:20px;height:20px;vertical-align:middle;margin-right:4px"> COSMIC Explorer</a>
+                <span>/</span>
+                <span id="bc-mol-id" style="font-family:var(--mono);font-weight:500">—</span>
+            </div>
+        </header>
+
+        <div class="detail-layout">
+            <!-- LEFT NAV -->
+            <nav class="detail-nav">
+                <div class="mol-title-block">
+                    <div class="formula-big" id="nav-formula">—</div>
+                    <div class="meta-lines">
+                        <div>ID: <code id="nav-id">—</code></div>
+                        <div id="nav-smiles" style="word-break:break-all;margin-top:4px"></div>
+                    </div>
+                </div>
+                <div class="toc">
+                    <div class="toc-label">Table of Contents</div>
+                    <a class="toc-link active" data-section="summary" onclick="showSection('summary',this)">Summary</a>
+                    <a class="toc-link" data-section="properties"
+                        onclick="showSection('properties',this)">Properties</a>
+                    <a class="toc-link sub" data-section="physical" onclick="showSection('physical',this)">Physical
+                        Properties</a>
+                    <a class="toc-link sub" data-section="thermo"
+                        onclick="showSection('thermo',this)">Thermodynamics</a>
+                    <a class="toc-link sub" data-section="critical" onclick="showSection('critical',this)">Critical
+                        Constants</a>
+                    <a class="toc-link sub" data-section="molecular" onclick="showSection('molecular',this)">Molecular
+                        Descriptors</a>
+                    <a class="toc-link" data-section="electronic" onclick="showSection('electronic',this)">Electronic
+                        Structure (DFT)</a>
+                    <a class="toc-link" data-section="bonding" onclick="showSection('bonding',this)">Bonding</a>
+                    <a class="toc-link" data-section="co2" onclick="showSection('co2',this)">CO₂ Solubility</a>
+                </div>
+            </nav>
+
+            <!-- CENTER CONTENT -->
+            <main class="detail-center">
+                <!-- 3D Viewer -->
+                <div class="viewer-card" id="viewer-card">
+                    <div id="canvas-wrap">
+                        <div class="viewer-overlay" id="viewer-overlay">
+                            <div class="spinner"></div>Loading 3D structure…
+                        </div>
+                    </div>
+                    <div class="viewer-controls">
+                        <div class="ctrl-btn" id="btn-fullscreen" title="Fullscreen">⛶</div>
+                        <div class="ctrl-btn" id="btn-reset-cam" title="Reset view">↺</div>
+                    </div>
+                    <div class="atom-chips" id="atom-chips"></div>
+                    <div class="mol-id-footer" id="mol-id-footer">—</div>
+                </div>
+
+                <!-- SUMMARY -->
+                <div class="section visible section-card" id="section-summary">
+                    <h2>Summary</h2>
+                    <p class="section-subtitle">Overview of key properties from COSMO-RS, DFT, and Molecular Dynamics
+                        calculations</p>
+                    <div class="prop-grid" id="summary-grid"></div>
+                </div>
+
+                <!-- PHYSICAL PROPERTIES -->
+                <div class="section section-card" id="section-physical">
+                    <h2>Physical Properties <span class="badge">COSMO-RS</span></h2>
+                    <p class="section-subtitle">Transport and bulk physical properties predicted via COSMO-RS</p>
+                    <div class="prop-grid" id="physical-grid"></div>
+                </div>
+
+                <!-- THERMODYNAMICS -->
+                <div class="section section-card" id="section-thermo">
+                    <h2>Thermodynamic Properties <span class="badge">COSMO-RS</span></h2>
+                    <p class="section-subtitle">Gas-phase and standard state thermodynamic quantities</p>
+                    <table class="btable" id="thermo-table"></table>
+                </div>
+
+                <!-- CRITICAL CONSTANTS -->
+                <div class="section section-card" id="section-critical">
+                    <h2>Critical Constants <span class="badge">COSMO-RS</span></h2>
+                    <p class="section-subtitle">Critical point and triple point parameters</p>
+                    <div class="prop-grid" id="critical-grid"></div>
+                </div>
+
+                <!-- MOLECULAR DESCRIPTORS -->
+                <div class="section section-card" id="section-molecular">
+                    <h2>Molecular Descriptors</h2>
+                    <p class="section-subtitle">Structural and volumetric molecular descriptors</p>
+                    <div class="prop-grid" id="molecular-grid"></div>
+                </div>
+
+                <!-- DFT / ELECTRONIC -->
+                <div class="section section-card" id="section-electronic">
+                    <h2>Electronic Structure <span class="badge">DFT</span></h2>
+                    <p class="section-subtitle">Quantum-mechanical properties from density functional theory
+                        calculations</p>
+                    <div id="dft-content"></div>
+                </div>
+
+                <!-- BONDING -->
+                <div class="section section-card" id="section-bonding">
+                    <h2>Bonding</h2>
+                    <p class="section-subtitle">Bond lengths computed from optimized DFT geometry (xyz files)</p>
+                    <table class="btable">
+                        <thead>
+                            <tr>
+                                <th>Atom 1</th>
+                                <th>Atom 2</th>
+                                <th>Avg Distance (Å)</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bond-tbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- CO2 SOLUBILITY -->
+                <div class="section section-card" id="section-co2">
+                    <h2>CO₂ Solubility <span class="badge">COSMO-RS</span></h2>
+                    <p class="section-subtitle">Predicted CO₂ solubility from COSMO-RS thermodynamic model</p>
+                    <div id="co2-content"></div>
+                </div>
+
+                <!-- PROPERTIES (parent) -->
+                <div class="section section-card" id="section-properties">
+                    <h2>All Properties</h2>
+                    <p class="section-subtitle">Complete property listing — use the sub-sections in the sidebar for
+                        categorized views</p>
+                    <table class="btable" id="all-props-table"></table>
+                </div>
+            </main>
+
+            <!-- RIGHT SIDEBAR -->
+            <aside class="detail-right">
+                <div>
+                    <div class="right-section-title">Molecule Info</div>
+                    <div class="prop-row"><span class="label">Solvent ID</span><span class="value" id="rp-id">—</span>
+                    </div>
+                    <div class="prop-row"><span class="label">Number of Atoms</span><span class="value"
+                            id="rp-atoms">—</span></div>
+                    <div class="prop-row"><span class="label">Formula</span><span class="value" id="rp-formula">—</span>
+                    </div>
+                    <div class="prop-row"><span class="label">SMILES</span><span class="value" id="rp-smiles"
+                            style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:10px">—</span></div>
+                </div>
+                <div>
+                    <div class="right-section-title">Key Properties</div>
+                    <div class="prop-row"><span class="label">Viscosity</span><span class="value" id="rp-visc">—</span>
+                    </div>
+                    <div class="prop-row"><span class="label">Density</span><span class="value" id="rp-dens">—</span>
+                    </div>
+                    <div class="prop-row"><span class="label">Boiling Point</span><span class="value"
+                            id="rp-bp">—</span></div>
+                    <div class="prop-row"><span class="label">Melting Point</span><span class="value"
+                            id="rp-mp">—</span></div>
+                    <div class="prop-row"><span class="label">Flash Point</span><span class="value" id="rp-fp">—</span>
+                    </div>
+                    <div class="prop-row"><span class="label">Dielectric Const</span><span class="value"
+                            id="rp-dielec">—</span></div>
+                </div>
+                <div>
+                    <div class="right-section-title">Electronic (DFT)</div>
+                    <div class="prop-row"><span class="label">HOMO</span><span class="value" id="rp-homo">—</span></div>
+                    <div class="prop-row"><span class="label">LUMO</span><span class="value" id="rp-lumo">—</span></div>
+                    <div class="prop-row"><span class="label">Gap</span><span class="value" id="rp-gap">—</span></div>
+                    <div class="prop-row"><span class="label">Dipole Moment</span><span class="value"
+                            id="rp-dipole">—</span></div>
+                </div>
+                <div>
+                    <div class="right-section-title">CO₂ Capture</div>
+                    <div class="prop-row"><span class="label">CO₂ Solubility</span><span class="value"
+                            id="rp-co2">—</span></div>
+                    <div class="prop-row"><span class="label">Synth. Access.</span><span class="value"
+                            id="rp-sa">—</span></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // ═══════════════════════════════════════════════════════
+        // ELEMENT CONFIG
+        // ═══════════════════════════════════════════════════════
+        // Colors matched to reference screenshots — glossy ball-and-stick style
+        const EL = {
+            H: { c: 0xc4adb6, h: '#c4adb6', n: 'Hydrogen', r: 0.31, s: 0.32 },
+            C: { c: 0x1a1d21, h: '#1a1d21', n: 'Carbon', r: 0.76, s: 0.44 },
+            N: { c: 0x1a3d8f, h: '#1a3d8f', n: 'Nitrogen', r: 0.71, s: 0.40 },
+            O: { c: 0xc41818, h: '#c41818', n: 'Oxygen', r: 0.66, s: 0.38 },
+            F: { c: 0x5cb830, h: '#5cb830', n: 'Fluorine', r: 0.57, s: 0.32 },
+            S: { c: 0xc8a020, h: '#c8a020', n: 'Sulfur', r: 1.05, s: 0.50 },
+            Cl: { c: 0x1dc81d, h: '#1dc81d', n: 'Chlorine', r: 0.99, s: 0.47 },
+            Br: { c: 0x7c2200, h: '#7c2200', n: 'Bromine', r: 1.14, s: 0.50 },
+            I: { c: 0x5c00aa, h: '#5c00aa', n: 'Iodine', r: 1.33, s: 0.52 },
+            P: { c: 0xe87800, h: '#e87800', n: 'Phosphorus', r: 1.07, s: 0.47 },
+            Si: { c: 0xbfa080, h: '#bfa080', n: 'Silicon', r: 1.11, s: 0.47 },
+        };
+        const elOf = s => EL[s] || { c: 0x888888, h: '#888', n: s, r: 0.8, s: 0.38 };
+
+        // ═══════════════════════════════════════════════════════
+        // THREE.JS SETUP
+        // ═══════════════════════════════════════════════════════
+        const wrap = document.getElementById('canvas-wrap');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 500);
+        cam.position.set(0, 0, 14);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        wrap.appendChild(renderer.domElement);
+        const ctrl = new OrbitControls(cam, renderer.domElement);
+        ctrl.enableDamping = true; ctrl.dampingFactor = 0.08;
+        ctrl.minDistance = 3;
+        ctrl.maxDistance = 80;
+        ctrl.zoomSpeed = 0.8;
+        ctrl.rotateSpeed = 0.6;
+
+        // Lighting — 3-point setup for glossy plastic look
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        keyLight.position.set(6, 10, 8); scene.add(keyLight);
+        const fillLight = new THREE.DirectionalLight(0xd0d8e8, 0.5);
+        fillLight.position.set(-6, 2, -4); scene.add(fillLight);
+        const rimLight = new THREE.DirectionalLight(0xffffff, 0.35);
+        rimLight.position.set(0, -8, 6); scene.add(rimLight);
+        const topLight = new THREE.DirectionalLight(0xfFF8f0, 0.25);
+        topLight.position.set(0, 12, 0); scene.add(topLight);
+
+        const molGroup = new THREE.Group(); scene.add(molGroup);
+
+        function resize() {
+            const w = wrap.clientWidth, h = wrap.clientHeight;
+            if (!w || !h) return;
+            cam.aspect = w / h; cam.updateProjectionMatrix(); renderer.setSize(w, h);
+        }
+        (function loop() {
+            requestAnimationFrame(loop); ctrl.update();
+            renderer.render(scene, cam);
+        })();
+        window.addEventListener('resize', resize); setTimeout(resize, 150);
+
+        // ═══════════════════════════════════════════════════════
+        // XYZ PARSING & 3D RENDERING
+        // ═══════════════════════════════════════════════════════
+        function parseXYZ(txt) {
+            const lines = txt.trim().split(/\r?\n/);
+            const n = parseInt(lines[0]);
+            const atoms = [];
+            for (let i = 2; i < 2 + n; i++) {
+                const p = lines[i]?.trim().split(/\s+/);
+                if (!p || p.length < 4) continue;
+                const sym = p[0].charAt(0).toUpperCase() + p[0].slice(1).toLowerCase();
+                atoms.push({ e: sym, p: [+p[1], +p[2], +p[3]] });
+            }
+            return atoms;
+        }
+
+        function getBonds(atoms) {
+            const out = [];
+            for (let i = 0; i < atoms.length; i++) {
+                for (let j = i + 1; j < atoms.length; j++) {
+                    const a = atoms[i], b = atoms[j];
+                    const d = Math.hypot(a.p[0] - b.p[0], a.p[1] - b.p[1], a.p[2] - b.p[2]);
+                    const max = (elOf(a.e).r + elOf(b.e).r) * 1.3;
+                    const min = (elOf(a.e).r + elOf(b.e).r) * 0.4;
+                    if (d >= min && d <= max) out.push({ i, j, d });
+                }
+            }
+            return out;
+        }
+
+        // Shared high-quality geometries (reused for all atoms/bonds)
+        const sphereGeoCache = {};
+        function getSphereGeo(radius) {
+            const key = radius.toFixed(3);
+            if (!sphereGeoCache[key]) sphereGeoCache[key] = new THREE.SphereGeometry(radius, 48, 48);
+            return sphereGeoCache[key];
+        }
+        const bondGeo16 = new THREE.CylinderGeometry(1, 1, 1, 16);
+
+        function makeMat(color) {
+            return new THREE.MeshStandardMaterial({
+                color,
+                roughness: 0.22,
+                metalness: 0.05,
+                envMapIntensity: 0.4,
+            });
+        }
+        const bondMat = new THREE.MeshStandardMaterial({
+            color: 0x3a3a3a,
+            roughness: 0.35,
+            metalness: 0.08,
+        });
+
+        function renderMol(atoms) {
+            molGroup.clear();
+            const cx = atoms.reduce((s, a) => s + a.p[0], 0) / atoms.length;
+            const cy = atoms.reduce((s, a) => s + a.p[1], 0) / atoms.length;
+            const cz = atoms.reduce((s, a) => s + a.p[2], 0) / atoms.length;
+            let maxR = 0;
+
+            const meshes = atoms.map(a => {
+                const e = elOf(a.e);
+                const m = new THREE.Mesh(getSphereGeo(e.s), makeMat(e.c));
+                m.position.set(a.p[0] - cx, a.p[1] - cy, a.p[2] - cz);
+                molGroup.add(m);
+                maxR = Math.max(maxR, m.position.length() + e.s);
+                return m;
+            });
+
+            const BOND_R = 0.07;
+            getBonds(atoms).forEach(({ i, j }) => {
+                const p1 = meshes[i].position, p2 = meshes[j].position;
+                const dir = new THREE.Vector3().subVectors(p2, p1);
+                const len = dir.length();
+                const cyl = new THREE.Mesh(bondGeo16, bondMat);
+                cyl.scale.set(BOND_R, len, BOND_R);
+                cyl.position.copy(new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5));
+                cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+                molGroup.add(cyl);
+            });
+
+            // Auto-frame: fit molecule into view with padding
+            const fov = cam.fov * Math.PI / 180;
+            const fitDist = maxR / Math.sin(fov / 2) * 0.65;
+            cam.position.set(0, 0, Math.max(6, Math.min(fitDist, 60)));
+            ctrl.target.set(0, 0, 0);
+            ctrl.update();
+            resize();
+
+            const used = [...new Set(atoms.map(a => a.e))].sort();
+            document.getElementById('atom-chips').innerHTML = used.map(e =>
+                `<div class="atom-chip" style="background:${elOf(e).h}">${e}</div>`
+            ).join('');
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // DATA LOADING
+        // ═══════════════════════════════════════════════════════
+        let solventData = [], dftData = [], co2Data = [];
+        const XYZ_DIR = 'xyz_files/Optimized_Geometry_xyz/';
+
+        async function tryFetch(url) {
+            try { const r = await fetch(url); return r.ok ? r : null; } catch { return null; }
+        }
+
+        function parseCSV(txt) {
+            const lines = txt.trim().split(/\r?\n/);
+            const heads = lines[0].split(',').map(h => h.trim());
+            return lines.slice(1).map(line => {
+                const cols = []; let cur = '', q = false;
+                for (const ch of line) {
+                    if (ch === '"') q = !q;
+                    else if (ch === ',' && !q) { cols.push(cur.trim()); cur = ''; }
+                    else cur += ch;
+                }
+                cols.push(cur.trim());
+                const o = {}; heads.forEach((h, i) => o[h] = cols[i] || '');
+                return o;
+            });
+        }
+
+        function extractFormula(smiles) {
+            // Count atoms from SMILES (simplified)
+            const atoms = {};
+            const stripped = smiles.replace(/\[.*?\]/g, m => {
+                const sym = m.match(/[A-Z][a-z]?/);
+                if (sym) atoms[sym[0]] = (atoms[sym[0]] || 0) + 1;
+                return '';
+            });
+            for (const m of stripped.matchAll(/[A-Z][a-z]?/g)) {
+                atoms[m[0]] = (atoms[m[0]] || 0) + 1;
+            }
+            // This is approximate — better to get from xyz filename
+            return Object.entries(atoms).map(([k, v]) => k + (v > 1 ? v : '')).join('');
+        }
+
+        async function loadAllData() {
+            const paths = [
+                ['COSMO-RS/pure_solvent_properties_data.csv', d => { solventData = d; }],
+                ['Quantum_mechanics_DFT/DFT_Computed_Properties.csv', d => { dftData = d; }],
+                ['COSMO-RS/solubility_co2.csv', d => { co2Data = d; }],
+            ];
+            await Promise.all(paths.map(async ([p, cb]) => {
+                const r = await tryFetch(p);
+                if (r) cb(parseCSV(await r.text()));
+            }));
+
+            document.getElementById('stat-solvents').textContent = solventData.length + ' solvents';
+            document.getElementById('stat-dft').textContent = dftData.length + ' DFT records';
+            document.getElementById('stat-co2').textContent = co2Data.length + ' CO₂ solubility';
+
+            renderList(solventData);
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // LIST PAGE
+        // ═══════════════════════════════════════════════════════
+        let currentPage = 1;
+        const PAGE_SIZE = 20;
+        let filteredList = [];
+        let currentSort = 'id';
+
+        function renderList(list) {
+            filteredList = list; currentPage = 1;
+            renderPage();
+        }
+
+        function sortList(list, key) {
+            const copy = [...list];
+            const numKey = {
+                'bp': 'boiling point [K]', 'bp-desc': 'boiling point [K]',
+                'visc': 'viscosity [Pa s]', 'visc-desc': 'viscosity [Pa s]',
+                'density': 'liquid density [kg/L]', 'density-desc': 'liquid density [kg/L]',
+                'dielec-desc': 'dielectric constant',
+            }[key];
+            if (numKey) {
+                const desc = key.endsWith('-desc');
+                copy.sort((a, b) => {
+                    const va = parseFloat(a[numKey]) || 0, vb = parseFloat(b[numKey]) || 0;
+                    return desc ? vb - va : va - vb;
+                });
+            }
+            return copy;
+        }
+
+        function fmtNum(v, digits = 4) {
+            const n = parseFloat(v);
+            if (isNaN(n)) return '—';
+            if (Math.abs(n) < 0.001 && n !== 0) return n.toExponential(2);
+            return n.toFixed(digits);
+        }
+
+        function fmtShort(v, digits = 3) {
+            const n = parseFloat(v);
+            if (isNaN(n)) return '—';
+            return n.toFixed(digits);
+        }
+
+        function renderPage() {
+            const sorted = currentSort === 'id' ? filteredList : sortList(filteredList, currentSort);
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const slice = sorted.slice(start, start + PAGE_SIZE);
+            const tbody = document.getElementById('mol-tbody');
+
+            tbody.innerHTML = slice.map((row, i) => {
+                const id = row['solvent ID'] || '';
+                const smiles = row['canonical smiles'] || '';
+                return `<tr onclick="openDetail('${id.replace(/'/g, "\\'")}')">
+      <td class="val" style="font-weight:500;color:var(--accent)">${id}</td>
+      <td class="smiles-cell" title="${smiles}">${smiles}</td>
+      <td class="val">${fmtNum(row['viscosity [Pa s]'])}</td>
+      <td class="val">${fmtShort(row['liquid density [kg/L]'])}</td>
+      <td class="val">${fmtShort(row['boiling point [K]'], 1)}</td>
+      <td class="val">${fmtShort(row['dielectric constant'], 2)}</td>
+      <td class="val">${fmtShort(row['van der waals volume [A^3]'], 1)}</td>
+    </tr>`;
+            }).join('');
+
+            // Pagination
+            const totalPages = Math.ceil(filteredList.length / PAGE_SIZE);
+            const pg = document.getElementById('pagination');
+            let pgHTML = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+            const maxBtns = 7;
+            let pageStart = Math.max(1, currentPage - Math.floor(maxBtns / 2));
+            let pageEnd = Math.min(totalPages, pageStart + maxBtns - 1);
+            if (pageEnd - pageStart < maxBtns - 1) pageStart = Math.max(1, pageEnd - maxBtns + 1);
+
+            for (let p = pageStart; p <= pageEnd; p++) {
+                pgHTML += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+            }
+            pgHTML += `<span class="page-info">${start + 1}–${Math.min(start + PAGE_SIZE, filteredList.length)} of ${filteredList.length}</span>`;
+            pgHTML += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>`;
+            pg.innerHTML = pgHTML;
+        }
+
+        window.goPage = (p) => {
+            const totalPages = Math.ceil(filteredList.length / PAGE_SIZE);
+            if (p < 1 || p > totalPages) return;
+            currentPage = p; renderPage(); window.scrollTo(0, 0);
+        };
+
+        // Search
+        function doSearch() {
+            const q = document.getElementById('search-input').value.trim().toLowerCase();
+            if (!q) { renderList(solventData); return; }
+            const results = solventData.filter(row => {
+                const id = (row['solvent ID'] || '').toLowerCase();
+                const smiles = (row['canonical smiles'] || '').toLowerCase();
+                return id.includes(q) || smiles.includes(q);
+            });
+            renderList(results);
+        }
+
+        document.getElementById('btn-search').onclick = doSearch;
+        document.getElementById('search-input').onkeydown = e => { if (e.key === 'Enter') doSearch(); };
+        document.getElementById('sort-select').onchange = e => { currentSort = e.target.value; renderPage(); };
+
+        // ═══════════════════════════════════════════════════════
+        // DETAIL PAGE
+        // ═══════════════════════════════════════════════════════
+
+        function findXYZFile(solventId) {
+            // Match xyz files: solventId could be like "zinc_50103500" or "10080341"
+            // xyz files named like: zinc_50103500_C7F2H13N1O1.xyz or 10080341_C4H6O3.xyz
+            const prefix = solventId + '_';
+            return prefix; // We'll search for files starting with this prefix
+        }
+
+        window.openDetail = async (solventId) => {
+            const row = solventData.find(r => r['solvent ID'] === solventId);
+            if (!row) return;
+
+            document.getElementById('page-list').style.display = 'none';
+            document.getElementById('page-detail').style.display = 'block';
+            document.getElementById('bc-mol-id').textContent = solventId;
+            document.getElementById('viewer-overlay').classList.remove('hidden');
+            showSection('summary', document.querySelector('.toc-link[data-section="summary"]'));
+
+            // Find DFT data
+            const dftRow = dftData.find(r => r['solvent_id'] === solventId);
+
+            // Find CO2 data
+            const co2Row = co2Data.find(r => r['ID'] === solventId);
+
+            // Try to load XYZ
+            let atoms = [], formula = '';
+            const xyzPrefix = solventId + '_';
+            // Try to fetch the directory listing or a known file
+            // We'll try common patterns
+            const dirRes = await tryFetch(XYZ_DIR);
+            let xyzPath = null;
+            if (dirRes) {
+                const html = await dirRes.text();
+                const re = new RegExp(`href="(${solventId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}_[^"]+\\.xyz)"`, 'i');
+                const match = html.match(re);
+                if (match) {
+                    xyzPath = XYZ_DIR + decodeURIComponent(match[1]);
+                }
+            }
+
+            if (xyzPath) {
+                const xyzRes = await tryFetch(xyzPath);
+                if (xyzRes) {
+                    const txt = await xyzRes.text();
+                    atoms = parseXYZ(txt);
+                    // Extract formula from filename
+                    const fnMatch = xyzPath.match(/_([A-Z][A-Za-z0-9]+)\.xyz$/);
+                    if (fnMatch) formula = fnMatch[1];
+                    renderMol(atoms);
+                }
+            }
+
+            if (!atoms.length) {
+                molGroup.clear();
+                document.getElementById('atom-chips').innerHTML = '<span style="color:var(--muted);font-size:11px">No 3D structure available</span>';
+            }
+
+            // Populate all sections
+            populateAll(row, dftRow, co2Row, atoms, formula);
+            document.getElementById('viewer-overlay').classList.add('hidden');
+            resize();
+        };
+
+        function v(row, key) { return row?.[key] ?? ''; }
+        function vf(row, key, digits = 4) {
+            const val = row?.[key];
+            if (!val || val === '' || val === 'nan' || val === 'None') return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return val;
+            if (Math.abs(n) < 0.0001 && n !== 0) return n.toExponential(3);
+            return n.toFixed(digits);
+        }
+
+        function propCard(label, value, unit) {
+            return `<div class="prop-card"><div class="prop-label">${label}</div><div class="prop-value">${value}<span class="prop-unit">${unit || ''}</span></div></div>`;
+        }
+
+        function populateAll(row, dftRow, co2Row, atoms, formula) {
+            const sid = v(row, 'solvent ID');
+            const smiles = v(row, 'canonical smiles');
+
+            // Nav
+            document.getElementById('nav-formula').textContent = formula || extractFormula(smiles) || sid;
+            document.getElementById('nav-id').textContent = sid;
+            document.getElementById('nav-smiles').innerHTML = `SMILES: <code style="font-size:10px;word-break:break-all">${smiles}</code>`;
+
+            // Right sidebar
+            document.getElementById('rp-id').textContent = sid;
+            document.getElementById('rp-atoms').textContent = atoms.length || '—';
+            document.getElementById('rp-formula').textContent = formula || '—';
+            document.getElementById('rp-smiles').textContent = smiles;
+            document.getElementById('rp-visc').textContent = vf(row, 'viscosity [Pa s]') + ' Pa·s';
+            document.getElementById('rp-dens').textContent = vf(row, 'liquid density [kg/L]', 3) + ' kg/L';
+            document.getElementById('rp-bp').textContent = vf(row, 'boiling point [K]', 1) + ' K';
+            document.getElementById('rp-mp').textContent = vf(row, 'melting point [K]', 1) + ' K';
+            document.getElementById('rp-fp').textContent = vf(row, 'flash point [K]', 1) + ' K';
+            document.getElementById('rp-dielec').textContent = vf(row, 'dielectric constant', 2);
+
+            document.getElementById('rp-homo').textContent = dftRow ? vf(dftRow, 'homo_eV', 2) + ' eV' : '—';
+            document.getElementById('rp-lumo').textContent = dftRow ? vf(dftRow, 'lumo_eV', 2) + ' eV' : '—';
+            document.getElementById('rp-gap').textContent = dftRow ? vf(dftRow, 'homo_lumo_gap_eV', 2) + ' eV' : '—';
+            document.getElementById('rp-dipole').textContent = dftRow ? vf(dftRow, 'dipole_moment_D', 3) + ' D' : '—';
+            document.getElementById('rp-co2').textContent = co2Row ? vf(co2Row, 'solubility_CO2 [mol/L]', 4) + ' mol/L' : '—';
+            document.getElementById('rp-sa').textContent = vf(row, 'synthetic accessibility', 2);
+
+            document.getElementById('mol-id-footer').textContent = `solvent: ${sid}  |  SMILES: ${smiles}`;
+
+            // ─── SUMMARY GRID ───
+            document.getElementById('summary-grid').innerHTML = [
+                propCard('Boiling Point', vf(row, 'boiling point [K]', 1), 'K'),
+                propCard('Melting Point', vf(row, 'melting point [K]', 1), 'K'),
+                propCard('Viscosity', vf(row, 'viscosity [Pa s]'), 'Pa·s'),
+                propCard('Liquid Density', vf(row, 'liquid density [kg/L]', 3), 'kg/L'),
+                propCard('Dielectric Constant', vf(row, 'dielectric constant', 2), ''),
+                propCard('vdW Volume', vf(row, 'van der waals volume [A^3]', 1), 'Å³'),
+                dftRow ? propCard('HOMO-LUMO Gap', vf(dftRow, 'homo_lumo_gap_eV', 2), 'eV') : propCard('HOMO-LUMO Gap', '—', ''),
+                co2Row ? propCard('CO₂ Solubility', vf(co2Row, 'solubility_CO2 [mol/L]', 4), 'mol/L') : propCard('CO₂ Solubility', '—', ''),
+            ].join('');
+
+            // ─── PHYSICAL PROPERTIES ───
+            document.getElementById('physical-grid').innerHTML = [
+                propCard('Viscosity', vf(row, 'viscosity [Pa s]'), 'Pa·s'),
+                propCard('Liquid Density', vf(row, 'liquid density [kg/L]', 3), 'kg/L'),
+                propCard('Boiling Point', vf(row, 'boiling point [K]', 1), 'K'),
+                propCard('Melting Point', vf(row, 'melting point [K]', 1), 'K'),
+                propCard('Flash Point', vf(row, 'flash point [K]', 1), 'K'),
+                propCard('Dielectric Constant', vf(row, 'dielectric constant', 2), ''),
+                propCard('Vapor Pressure', vf(row, 'vapor pressure [bar]'), 'bar'),
+                propCard('Liquid Molar Volume', vf(row, 'liquid molar volume [L/mol]', 4), 'L/mol'),
+                propCard('Solubility Parameter', vf(row, 'solubility parameter [(cal/cm^3)^1/2]', 2), '(cal/cm³)^½'),
+            ].join('');
+
+            // ─── THERMODYNAMICS ───
+            const thermoProps = [
+                ['Ideal Gas Entropy', 'ideal gas entropy [J/mol/K]', 'J/mol/K'],
+                ['Enthalpy of Formation (ideal gas)', 'enthalpy of formation ideal gas [kJ/mol]', 'kJ/mol'],
+                ['Gibbs Energy (ideal gas)', 'gibbs energy ideal gas [kJ/mol]', 'kJ/mol'],
+                ['Enthalpy of Combustion', 'enthalpy of combustion [kJ/mol]', 'kJ/mol'],
+                ['Enthalpy of Fusion', 'enthalpy of fusion [kJ/mol]', 'kJ/mol'],
+                ['Enthalpy of Sublimation', 'enthalpy of sublimation [kJ/mol]', 'kJ/mol'],
+                ['Standard Enthalpy of Formation', 'standard enthalpy of formation [kJ/mol]', 'kJ/mol'],
+            ];
+            document.getElementById('thermo-table').innerHTML =
+                '<thead><tr><th>Property</th><th>Value</th><th>Unit</th></tr></thead><tbody>' +
+                thermoProps.map(([name, key, unit]) =>
+                    `<tr><td>${name}</td><td class="val">${vf(row, key, 2)}</td><td style="color:var(--muted);font-size:12px">${unit}</td></tr>`
+                ).join('') + '</tbody>';
+
+            // ─── CRITICAL CONSTANTS ───
+            document.getElementById('critical-grid').innerHTML = [
+                propCard('Critical Temperature', vf(row, 'critical temperature [K]', 1), 'K'),
+                propCard('Critical Pressure', vf(row, 'critical pressure [bar]', 2), 'bar'),
+                propCard('Critical Volume', vf(row, 'critical volume [L/mol]', 4), 'L/mol'),
+                propCard('Triple Point Temperature', vf(row, 'triple point temperature [K]', 1), 'K'),
+            ].join('');
+
+            // ─── MOLECULAR DESCRIPTORS ───
+            document.getElementById('molecular-grid').innerHTML = [
+                propCard('van der Waals Area', vf(row, 'van der waals area [A^2]', 1), 'Å²'),
+                propCard('van der Waals Volume', vf(row, 'van der waals volume [A^3]', 1), 'Å³'),
+                propCard('Parachor', vf(row, 'parachor', 1), ''),
+                propCard('Synthetic Accessibility', vf(row, 'synthetic accessibility', 2), ''),
+                propCard('Liquid Molar Volume', vf(row, 'liquid molar volume [L/mol]', 4), 'L/mol'),
+                propCard('Solubility Parameter', vf(row, 'solubility parameter [(cal/cm^3)^1/2]', 2), '(cal/cm³)^½'),
+            ].join('');
+
+            // ─── DFT ELECTRONIC ───
+            const dftEl = document.getElementById('dft-content');
+            if (dftRow) {
+                dftEl.innerHTML = `
+      <div class="two-col" style="margin-bottom:16px">
+        <div>
+          <div class="prop-grid" style="grid-template-columns:1fr 1fr">
+            ${propCard('SCF Energy', vf(dftRow, 'scf_energy_eV', 2), 'eV')}
+            ${propCard('Dipole Moment', vf(dftRow, 'dipole_moment_D', 3), 'D')}
+            ${propCard('HOMO', vf(dftRow, 'homo_eV', 2), 'eV')}
+            ${propCard('LUMO', vf(dftRow, 'lumo_eV', 2), 'eV')}
+            ${propCard('HOMO-LUMO Gap', vf(dftRow, 'homo_lumo_gap_eV', 2), 'eV')}
+            ${propCard('Polarizability', vf(dftRow, 'polarizability_ang3', 1), 'Å³')}
+          </div>
+        </div>
+        <div>
+          <table class="btable">
+            <thead><tr><th>Property</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Min Partial Charge</td><td class="val">${vf(dftRow, 'min_partial_charge', 4)} e</td></tr>
+              <tr><td>Max Partial Charge</td><td class="val">${vf(dftRow, 'max_partial_charge', 4)} e</td></tr>
+              <tr><td>Min |Partial Charge|</td><td class="val">${vf(dftRow, 'min_abs_partial_charge', 4)} e</td></tr>
+              <tr><td>Max |Partial Charge|</td><td class="val">${vf(dftRow, 'max_abs_partial_charge', 4)} e</td></tr>
+              <tr><td>Vib. Freq. Min</td><td class="val">${vf(dftRow, 'vib_freq_min_cm1', 1)} cm⁻¹</td></tr>
+              <tr><td>Vib. Freq. Max</td><td class="val">${vf(dftRow, 'vib_freq_max_cm1', 1)} cm⁻¹</td></tr>
+              <tr><td>Vib. Freq. Count</td><td class="val">${v(dftRow, 'vib_freq_count')}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+            } else {
+                dftEl.innerHTML = '<div class="no-data">No DFT data available for this solvent. DFT calculations may not have been performed for this molecule.</div>';
+            }
+
+            // ─── BONDING ───
+            const bonds = getBonds(atoms);
+            const bmap = {};
+            bonds.forEach(({ i, j, d }) => {
+                const k = [atoms[i].e, atoms[j].e].sort().join(' – ');
+                if (!bmap[k]) bmap[k] = { sum: 0, n: 0 };
+                bmap[k].sum += d; bmap[k].n++;
+            });
+            const bondHTML = Object.entries(bmap).map(([k, v]) => {
+                const [a1, a2] = k.split(' – ');
+                return `<tr><td>${a1}</td><td>${a2}</td><td class="val">${(v.sum / v.n).toFixed(3)}</td><td class="val">${v.n}</td></tr>`;
+            }).join('');
+            document.getElementById('bond-tbody').innerHTML = bondHTML ||
+                '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No 3D structure loaded — bond analysis unavailable</td></tr>';
+
+            // ─── CO2 SOLUBILITY ───
+            const co2El = document.getElementById('co2-content');
+            if (co2Row) {
+                const sol = parseFloat(co2Row['solubility_CO2 [mol/L]']);
+                let quality = 'Low';
+                let tagClass = 'tag-red';
+                if (sol > 0.15) { quality = 'High'; tagClass = 'tag-green'; }
+                else if (sol > 0.08) { quality = 'Moderate'; tagClass = 'tag-amber'; }
+
+                co2El.innerHTML = `
+      <div class="prop-grid" style="margin-bottom:16px">
+        ${propCard('CO₂ Solubility', sol.toFixed(4), 'mol/L')}
+        <div class="prop-card">
+          <div class="prop-label">CO₂ Capture Rating</div>
+          <div class="prop-value"><span class="tag ${tagClass}">${quality}</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--muted)">Solubility predicted using COSMO-RS thermodynamic model at standard conditions. Rating: High > 0.15 mol/L, Moderate > 0.08 mol/L, Low ≤ 0.08 mol/L.</p>`;
+            } else {
+                co2El.innerHTML = '<div class="no-data">No CO₂ solubility data available for this solvent.</div>';
+            }
+
+            // ─── ALL PROPERTIES TABLE ───
+            const allKeys = Object.keys(row).filter(k => k !== 'solvent ID' && k !== 'canonical smiles');
+            let allHTML = '<thead><tr><th>Property</th><th>Value</th></tr></thead><tbody>';
+            allKeys.forEach(k => {
+                const val = row[k];
+                if (val && val !== '' && val !== 'nan') {
+                    const n = parseFloat(val);
+                    const display = isNaN(n) ? val : (Math.abs(n) < 0.0001 && n !== 0 ? n.toExponential(3) : n.toFixed(4));
+                    allHTML += `<tr><td>${k}</td><td class="val">${display}</td></tr>`;
+                }
+            });
+            allHTML += '</tbody>';
+            document.getElementById('all-props-table').innerHTML = allHTML;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // NAVIGATION & EVENTS
+        // ═══════════════════════════════════════════════════════
+        document.getElementById('back-to-list').onclick = () => {
+            document.getElementById('page-detail').style.display = 'none';
+            document.getElementById('page-list').style.display = 'block';
+        };
+
+        document.getElementById('btn-reset-cam').onclick = () => {
+            cam.position.set(0, 0, 14);
+            ctrl.target.set(0, 0, 0);
+            ctrl.update();
+        };
+        document.getElementById('btn-fullscreen').onclick = () => {
+            const vc = document.getElementById('viewer-card');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                vc.requestFullscreen?.().then(() => {
+                    setTimeout(resize, 100);
+                });
+            }
+        };
+        document.addEventListener('fullscreenchange', () => {
+            setTimeout(resize, 50);
+            setTimeout(resize, 200);
+        });
+
+        window.showSection = (id, el) => {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+            document.querySelectorAll('.toc-link').forEach(a => a.classList.remove('active'));
+            const sec = document.getElementById('section-' + id);
+            if (sec) sec.classList.add('visible');
+            if (el) el.classList.add('active');
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════
+        loadAllData();
+    </script>
+</body>
+
+</html>
