@@ -1185,6 +1185,7 @@
         // DATA LOADING
         // ═══════════════════════════════════════════════════════
         let solventData = [], dftData = [], co2Data = [];
+        let xyzIndex = [];
         const XYZ_DIR = 'xyz_files/Optimized_Geometry_xyz/';
 
         async function tryFetch(url) {
@@ -1228,10 +1229,16 @@
                 ['Quantum_mechanics_DFT/DFT_Computed_Properties.csv', d => { dftData = d; }],
                 ['COSMO-RS/solubility_co2.csv', d => { co2Data = d; }],
             ];
-            await Promise.all(paths.map(async ([p, cb]) => {
-                const r = await tryFetch(p);
-                if (r) cb(parseCSV(await r.text()));
-            }));
+            const idxP = tryFetch(XYZ_DIR + 'index.json').then(async r => {
+                if (r) xyzIndex = await r.json();
+            });
+            await Promise.all([
+                idxP,
+                ...paths.map(async ([p, cb]) => {
+                    const r = await tryFetch(p);
+                    if (r) cb(parseCSV(await r.text()));
+                })
+            ]);
 
             document.getElementById('stat-solvents').textContent = solventData.length + ' solvents';
             document.getElementById('stat-dft').textContent = dftData.length + ' DFT records';
@@ -1372,19 +1379,8 @@
 
             // Try to load XYZ
             let atoms = [], formula = '';
-            const xyzPrefix = solventId + '_';
-            // Try to fetch the directory listing or a known file
-            // We'll try common patterns
-            const dirRes = await tryFetch(XYZ_DIR);
-            let xyzPath = null;
-            if (dirRes) {
-                const html = await dirRes.text();
-                const re = new RegExp(`href="(${solventId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}_[^"]+\\.xyz)"`, 'i');
-                const match = html.match(re);
-                if (match) {
-                    xyzPath = XYZ_DIR + decodeURIComponent(match[1]);
-                }
-            }
+            const xyzFile = xyzIndex.find(f => f.startsWith(solventId + '_'));
+            let xyzPath = xyzFile ? XYZ_DIR + xyzFile : null;
 
             if (xyzPath) {
                 const xyzRes = await tryFetch(xyzPath);
